@@ -2,4 +2,4 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 Password-generator is a React component that can be configured to provide a password based on the password generator API.
 
-[Front of the component](./public/front.png)
+(./public/front.png)
