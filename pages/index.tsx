@@ -11,8 +11,38 @@ import {
   Button,
   Space,
 } from "@mantine/core";
+import { useState } from "react";
 
 export default function Home() {
+  const [length, setLength] = useState(8);
+  const [numbers, setNumbers] = useState(false);
+  const [specialCharacters, setSpecialCharacters] = useState(false);
+  const [password, setPassword] = useState<Respuesta>({ random_password: "" });
+  const [generating, setGenerating] = useState(false);
+  interface Respuesta {
+    random_password?: string;
+  }
+
+  async function generatePassword<R>(): Promise<R> {
+    const url = `${
+      process.env.NEXT_PUBLIC_PASSWORD
+    }?length=${length}&exclude_numbers=${!numbers}&exclude_special_chars=${!specialCharacters}`;
+    const requestOptions = {
+      headers: { "X-Api-Key": process.env.NEXT_PUBLIC_API_KEY || "" },
+      contentType: "application/json",
+    };
+
+    const randomPassword = (await (
+      await fetch(url, requestOptions)
+    ).json()) as R;
+    return randomPassword;
+  }
+  const handleClick = async () => {
+    setGenerating(true);
+    const passwordData: Respuesta = await generatePassword<Respuesta>();
+    setPassword(passwordData);
+    setGenerating(false);
+  };
   return (
     <>
       <Head>
@@ -21,16 +51,23 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
+      <main style={{ margin: 0 }}>
         <Center style={{ height: "100vh", width: "100vw" }}>
           <Card shadow="sm" padding="xl" radius="md" withBorder>
             <Text weight={700} align="center">
               Password Generator
             </Text>
             <Stack m="xl" spacing="xl">
-              <Group>
-                <Input size="lg" />
-              </Group>
+              <Switch
+                label="With numbers"
+                checked={numbers}
+                onChange={() => setNumbers(!numbers)}
+              />
+              <Switch
+                label="With special characters"
+                checked={specialCharacters}
+                onChange={() => setSpecialCharacters(!specialCharacters)}
+              />
               <Text>Length:</Text>
               <Slider
                 size="sm"
@@ -41,11 +78,19 @@ export default function Home() {
                   { value: 18, label: "18" },
                   { value: 28, label: "28" },
                 ]}
+                value={length}
+                onChange={(val) => setLength(val)}
               />
               <Space />
-              <Switch label="With numbers" />
-              <Switch label="With special characters" />
-              <Group position="center" pt="md">
+              <Button onClick={handleClick} loading={generating}>
+                {" "}
+                Generate
+              </Button>
+              <Group>
+                <Input size="lg" value={password.random_password} />
+                {/* <Text>{password.random_password}</Text> */}
+              </Group>
+              <Group position="left" pt="md">
                 <Button>Select</Button>
                 <Button>Cancel</Button>
               </Group>
